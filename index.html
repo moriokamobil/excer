@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>公用車カーシェア | 自治体向けスマート車両管理システム</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #1a4f9f;
+      --primary-dark: #123a7a;
+      --accent: #e8a020;
+      --accent-dark: #c47a10;
+      --text: #1a1a2e;
+      --text-light: #555;
+      --bg: #f7f9fc;
+      --white: #ffffff;
+      --border: #dde3ef;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+    }
+
+    /* ── ナビ ── */
+    header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.02em;
+    }
+    .logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text-light);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--primary); }
+    .nav-cta {
+      background: var(--primary);
+      color: var(--white) !important;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-weight: 700 !important;
+    }
+    .nav-cta:hover { background: var(--primary-dark); color: var(--white) !important; }
+
+    /* ── ヒーロー ── */
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, #0f3266 60%, #091d42 100%);
+      color: var(--white);
+      padding: 96px 24px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(232,160,32,0.2);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 4px 16px;
+      border-radius: 999px;
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 900;
+      line-height: 1.2;
+      margin-bottom: 24px;
+      letter-spacing: -0.02em;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .hero p {
+      font-size: 1.15rem;
+      opacity: 0.88;
+      max-width: 620px;
+      margin: 0 auto 40px;
+    }
+    .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--accent);
+      color: var(--white);
+      border: none;
+      padding: 16px 36px;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+      display: inline-block;
+    }
+    .btn-primary:hover { background: var(--accent-dark); transform: translateY(-2px); }
+    .btn-outline {
+      background: transparent;
+      color: var(--white);
+      border: 2px solid rgba(255,255,255,0.5);
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+      display: inline-block;
+    }
+    .btn-outline:hover { border-color: var(--white); background: rgba(255,255,255,0.1); }
+    .hero-stats {
+      margin-top: 64px;
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+    }
+    .hero-stat { text-align: center; }
+    .hero-stat .num {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .hero-stat .label { font-size: 0.85rem; opacity: 0.8; margin-top: 4px; }
+
+    /* ── セクション共通 ── */
+    section { padding: 80px 24px; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    h2 {
+      text-align: center;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 900;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    .section-desc {
+      text-align: center;
+      color: var(--text-light);
+      max-width: 560px;
+      margin: 0 auto 56px;
+      font-size: 1rem;
+    }
+
+    /* ── 課題セクション ── */
+    .problems { background: var(--white); }
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+    .problem-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      background: var(--bg);
+      position: relative;
+    }
+    .problem-card .icon {
+      font-size: 2rem;
+      margin-bottom: 12px;
+    }
+    .problem-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .problem-card p { font-size: 0.88rem; color: var(--text-light); }
+
+    /* ── 特徴 ── */
+    .features { background: var(--bg); }
+    .feature-list { display: flex; flex-direction: column; gap: 48px; }
+    .feature-item {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .feature-item.reverse { direction: rtl; }
+    .feature-item.reverse > * { direction: ltr; }
+    .feature-visual {
+      background: linear-gradient(135deg, var(--primary) 0%, #1a4f9f 100%);
+      border-radius: var(--radius);
+      padding: 40px;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    .feature-visual .big-icon { font-size: 4rem; }
+    .feature-visual .mock {
+      background: rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 16px 20px;
+      width: 100%;
+      color: var(--white);
+      font-size: 0.85rem;
+      line-height: 1.8;
+    }
+    .feature-visual .mock strong { color: var(--accent); }
+    .feature-tag {
+      display: inline-block;
+      background: rgba(26,79,159,0.1);
+      color: var(--primary);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+    .feature-text h3 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .feature-text p { color: var(--text-light); margin-bottom: 16px; font-size: 0.95rem; }
+    .check-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .check-list li {
+      font-size: 0.9rem;
+      padding-left: 24px;
+      position: relative;
+      color: var(--text-light);
+    }
+    .check-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    /* ── 効果 ── */
+    .effects { background: var(--white); }
+    .effects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+    }
+    .effect-card {
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      text-align: center;
+      border: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .effect-card .num {
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: var(--primary);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .effect-card .unit { font-size: 1rem; font-weight: 700; color: var(--primary); }
+    .effect-card h3 { font-size: 0.95rem; font-weight: 700; margin: 12px 0 6px; }
+    .effect-card p { font-size: 0.8rem; color: var(--text-light); }
+
+    /* ── 導入事例 ── */
+    .cases { background: var(--bg); }
+    .case-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+    .case-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      border: 1px solid var(--border);
+    }
+    .case-tag {
+      display: inline-block;
+      background: var(--primary);
+      color: var(--white);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+    .case-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
+    .case-result {
+      background: rgba(26,79,159,0.07);
+      border-left: 3px solid var(--primary);
+      padding: 10px 14px;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.85rem;
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .case-card p { font-size: 0.85rem; color: var(--text-light); }
+    .case-footer {
+      margin-top: 14px;
+      font-size: 0.8rem;
+      color: var(--text-light);
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    /* ── 導入フロー ── */
+    .flow { background: var(--white); }
+    .flow-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0;
+      position: relative;
+    }
+    .flow-step {
+      text-align: center;
+      padding: 32px 16px;
+      position: relative;
+    }
+    .flow-step:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--border);
+      font-size: 1.5rem;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background: var(--primary);
+      color: var(--white);
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: 1.1rem;
+      margin: 0 auto 14px;
+    }
+    .flow-step h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+    .flow-step p { font-size: 0.8rem; color: var(--text-light); }
+    .flow-note {
+      text-align: center;
+      margin-top: 32px;
+      background: rgba(232,160,32,0.1);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 14px 24px;
+      font-size: 0.88rem;
+      color: #7a500a;
+      font-weight: 600;
+    }
+
+    /* ── FAQ ── */
+    .faq { background: var(--bg); }
+    .faq-list { max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+    .faq-item {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .faq-item summary {
+      padding: 20px 24px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.95rem;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .faq-item summary::after {
+      content: "+";
+      font-size: 1.4rem;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+    .faq-item[open] summary::after { content: "−"; }
+    .faq-body { padding: 0 24px 20px; font-size: 0.9rem; color: var(--text-light); }
+
+    /* ── CTA ── */
+    .cta-section {
+      background: linear-gradient(135deg, var(--primary) 0%, #0f3266 100%);
+      color: var(--white);
+      text-align: center;
+      padding: 96px 24px;
+    }
+    .cta-section h2 { color: var(--white); margin-bottom: 16px; }
+    .cta-section p { opacity: 0.85; max-width: 520px; margin: 0 auto 40px; font-size: 1rem; }
+    .cta-form {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      max-width: 560px;
+      margin: 0 auto 20px;
+    }
+    .cta-form input {
+      flex: 1;
+      min-width: 220px;
+      padding: 14px 18px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+    .cta-form input:focus { outline: 3px solid var(--accent); }
+    .cta-note { font-size: 0.8rem; opacity: 0.7; }
+
+    /* ── フッター ── */
+    footer {
+      background: #0a1930;
+      color: rgba(255,255,255,0.6);
+      padding: 48px 24px 32px;
+    }
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 32px;
+    }
+    .footer-logo { color: var(--white); font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; }
+    .footer-logo span { color: var(--accent); }
+    .footer-copy { font-size: 0.8rem; margin-top: 24px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 24px; }
+    .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+    .footer-links a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.85rem; }
+    .footer-links a:hover { color: var(--white); }
+
+    @media (max-width: 768px) {
+      .feature-item, .feature-item.reverse {
+        grid-template-columns: 1fr;
+        direction: ltr;
+      }
+      .nav-links { display: none; }
+      .flow-step:not(:last-child)::after { display: none; }
+      .hero-stats { gap: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ナビ -->
+<header>
+  <nav>
+    <div class="logo">GovShare<span>.</span></div>
+    <ul class="nav-links">
+      <li><a href="#features">機能</a></li>
+      <li><a href="#effects">導入効果</a></li>
+      <li><a href="#cases">導入事例</a></li>
+      <li><a href="#faq">よくある質問</a></li>
+      <li><a href="#contact" class="nav-cta">資料請求</a></li>
+    </ul>
+  </nav>
+</header>
+
+<!-- ヒーロー -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">自治体向け 公用車管理DX</div>
+    <h1>
+      公用車の<em>稼働率を最大化</em>し、<br>
+      コストと手間を同時に削減
+    </h1>
+    <p>
+      複数部署にまたがる公用車をスマートにシェアリング。<br>
+      予約・返却・管理がすべてクラウドで完結します。
+    </p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-primary">無料で資料を請求する</a>
+      <a href="#features" class="btn-outline">機能を見る</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="num">120+</div>
+        <div class="label">導入自治体数</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">40%</div>
+        <div class="label">平均コスト削減率</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">30分</div>
+        <div class="label">最短導入期間</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num">99.9%</div>
+        <div class="label">稼働率</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 課題 -->
+<section class="problems" id="problems">
+  <div class="container">
+    <div class="section-label">課題</div>
+    <h2>こんなお悩みはありませんか？</h2>
+    <p class="section-desc">多くの自治体で共通して発生している公用車管理の課題です。</p>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="icon">📋</div>
+        <h3>紙・電話の予約管理が煩雑</h3>
+        <p>担当者への電話確認、紙の台帳記入など、アナログ管理による業務負担が大きい。</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">🚗</div>
+        <h3>車両の空き状況が把握できない</h3>
+        <p>どの部署がどの車を使っているか即座に確認できず、二重予約やトラブルが発生する。</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">💰</div>
+        <h3>保有台数の過多・維持コスト増大</h3>
+        <p>利用実態を把握できないまま台数を確保し、維持費・保険料が増え続けている。</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">📊</div>
+        <h3>運行記録・ガソリン管理が手作業</h3>
+        <p>走行記録の集計、燃料費の精算が手作業で、月末に大きな工数がかかっている。</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">🔑</div>
+        <h3>鍵の受け渡しに物理的な手間</h3>
+        <p>時間外・早朝の利用で担当者が対応する必要があり、柔軟な運用が難しい。</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">📈</div>
+        <h3>DX推進の圧力があるが方法がわからない</h3>
+        <p>行政DXの方針に応じた取り組みが求められているが、何から始めればよいか不明。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 特徴 -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="section-label">機能・特徴</div>
+    <h2>GovShareが選ばれる理由</h2>
+    <p class="section-desc">自治体の業務フローに合わせて設計された、使いやすいカーシェアシステムです。</p>
+    <div class="feature-list">
+
+      <div class="feature-item">
+        <div class="feature-visual">
+          <div class="big-icon">📅</div>
+          <div class="mock">
+            <strong>▶ 車両予約</strong><br>
+            ○○市役所 普通車A　9:00〜12:00<br>
+            ─────────────────<br>
+            残り 2台 利用可能<br>
+            <br>
+            <strong>▶ 本日の予約状況</strong><br>
+            福祉課　普通車B　13:00〜<br>
+            土木課　軽自動車C　終日
+          </div>
+        </div>
+        <div class="feature-text">
+          <span class="feature-tag">WEB予約</span>
+          <h3>いつでも・どこからでも<br>ワンクリック予約</h3>
+          <p>スマートフォン・PCから全部署の車両空き状況をリアルタイムで確認。メールや電話不要で即時予約が完了します。</p>
+          <ul class="check-list">
+            <li>カレンダーUIで直感的に操作</li>
+            <li>車種・定員・装備品でフィルタ可能</li>
+            <li>予約確認メールの自動送信</li>
+            <li>承認ワークフローの設定にも対応</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-item reverse">
+        <div class="feature-visual">
+          <div class="big-icon">🔐</div>
+          <div class="mock">
+            <strong>▶ スマートキーBOX</strong><br>
+            予約番号: #20240612-042<br>
+            認証コード: 🔢 ●●●●<br>
+            ─────────────────<br>
+            解錠　✅ 成功<br>
+            返却　⏰ 15:30まで
+          </div>
+        </div>
+        <div class="feature-text">
+          <span class="feature-tag">スマートキー</span>
+          <h3>鍵の受け渡し不要<br>スマートキーBOXで完全無人対応</h3>
+          <p>物理的な鍵の受け渡しをゼロに。IoT対応キーBOXにより、予約者本人だけが認証コードで解錠できます。時間外・休日の利用も安心。</p>
+          <ul class="check-list">
+            <li>ICカード・QRコード・暗証番号の3段階認証</li>
+            <li>解錠ログの自動記録</li>
+            <li>返却遅延アラートの自動通知</li>
+            <li>既存のキーBOXへの後付けも可能</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-visual">
+          <div class="big-icon">📊</div>
+          <div class="mock">
+            <strong>▶ 月次レポート（6月）</strong><br>
+            総走行距離　3,842 km<br>
+            燃料費合計　¥62,400<br>
+            稼働率　　　73.2%<br>
+            ─────────────────<br>
+            部署別ランキング<br>
+            1位 福祉課　2位 建設課
+          </div>
+        </div>
+        <div class="feature-text">
+          <span class="feature-tag">データ分析</span>
+          <h3>運行データを自動集計<br>予算・報告書作成を効率化</h3>
+          <p>走行距離・燃料費・部署別稼働率をダッシュボードでリアルタイム把握。月次報告書は自動生成でボタン一つで出力できます。</p>
+          <ul class="check-list">
+            <li>走行記録の自動取得（ETC連携対応）</li>
+            <li>ガソリン代・維持費の部署別按分</li>
+            <li>最適台数のシミュレーション機能</li>
+            <li>CSVエクスポートで既存システムとも連携</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- 効果 -->
+<section class="effects" id="effects">
+  <div class="container">
+    <div class="section-label">導入効果</div>
+    <h2>数字で見る導入効果</h2>
+    <p class="section-desc">導入自治体の平均実績データです（2023年度集計）。</p>
+    <div class="effects-grid">
+      <div class="effect-card">
+        <div class="num">40<span class="unit">%</span></div>
+        <h3>公用車維持コスト削減</h3>
+        <p>台数最適化と燃料管理の効率化による削減効果</p>
+      </div>
+      <div class="effect-card">
+        <div class="num">80<span class="unit">%</span></div>
+        <h3>予約管理業務の工数削減</h3>
+        <p>電話・紙台帳によるアナログ管理からの解放</p>
+      </div>
+      <div class="effect-card">
+        <div class="num">1.8<span class="unit">倍</span></div>
+        <h3>車両稼働率の向上</h3>
+        <p>部署をまたいだシェアリングで遊休車両を有効活用</p>
+      </div>
+      <div class="effect-card">
+        <div class="num">3<span class="unit">ヶ月</span></div>
+        <h3>ROI回収期間</h3>
+        <p>コスト削減効果により短期間で投資回収が可能</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 導入事例 -->
+<section class="cases" id="cases">
+  <div class="container">
+    <div class="section-label">導入事例</div>
+    <h2>全国の自治体での活用事例</h2>
+    <p class="section-desc">人口規模・地域を問わず幅広い自治体に導入いただいています。</p>
+    <div class="case-grid">
+      <div class="case-card">
+        <span class="case-tag">政令指定都市</span>
+        <h3>A市（人口80万人）</h3>
+        <div class="case-result">年間コスト削減額：約1,200万円</div>
+        <p>市役所本庁舎と5つの区役所にまたがる公用車を一元管理。紙台帳の廃止と台数適正化で大幅なコスト削減を実現。稼働率は62%から91%に向上した。</p>
+        <div class="case-footer">担当：行政管理課 / 導入規模：公用車68台</div>
+      </div>
+      <div class="case-card">
+        <span class="case-tag">中核市</span>
+        <h3>B市（人口25万人）</h3>
+        <div class="case-result">予約管理工数：月40時間→5時間</div>
+        <p>専任担当者の不在時も安心なスマートキーBOXにより、時間外の緊急対応も無人で実施可能に。担当者から「業務が激変した」と高評価を獲得。</p>
+        <div class="case-footer">担当：総務課 / 導入規模：公用車32台</div>
+      </div>
+      <div class="case-card">
+        <span class="case-tag">町村</span>
+        <h3>C町（人口8,000人）</h3>
+        <div class="case-result">公用車台数：18台→12台に適正化</div>
+        <p>小規模自治体ながら複数部署間の調整が難しく、車両が遊休状態に。データ分析で利用実態を可視化し、台数削減と維持費圧縮を同時に実現した。</p>
+        <div class="case-footer">担当：企画政策課 / 導入規模：公用車12台</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 導入フロー -->
+<section class="flow" id="flow">
+  <div class="container">
+    <div class="section-label">導入フロー</div>
+    <h2>最短1ヶ月で本番稼働</h2>
+    <p class="section-desc">IT専任担当者がいなくても安心。専任スタッフが導入を全面サポートします。</p>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <h3>ヒアリング・<br>ご提案</h3>
+        <p>現状の課題・台数・利用状況をヒアリングし、最適なプランをご提案</p>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <h3>デモ・<br>トライアル</h3>
+        <p>実際のシステムを30日間無料でお試しいただけます</p>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <h3>初期設定・<br>機器設置</h3>
+        <p>キーBOX設置・マスタデータ登録を専任スタッフが対応</p>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <h3>職員向け<br>操作研修</h3>
+        <p>オンライン・現地どちらでも研修を実施。マニュアルも完備</p>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">5</div>
+        <h3>本番稼働・<br>継続サポート</h3>
+        <p>稼働後も専任CSが継続対応。電話・チャットで即日回答</p>
+      </div>
+    </div>
+    <div class="flow-note">
+      ✅ 情報セキュリティポリシーへの対応・セキュリティ審査も全面サポートします
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="container">
+    <div class="section-label">よくある質問</div>
+    <h2>よくあるご質問</h2>
+    <p class="section-desc">導入検討時に多くいただくご質問をまとめました。</p>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>既存の財務・庶務システムとの連携は可能ですか？</summary>
+        <div class="faq-body">はい、CSV連携・APIによる接続に対応しています。主要な自治体向けパッケージ（LGWAN対応含む）との連携実績があります。詳細はご相談ください。</div>
+      </details>
+      <details class="faq-item">
+        <summary>LGWAN環境で利用できますか？</summary>
+        <div class="faq-body">LGWAN接続系・インターネット接続系の双方に対応したシステム構成をご提案可能です。セキュリティポリシーに応じた個別設計も承ります。</div>
+      </details>
+      <details class="faq-item">
+        <summary>初期費用・月額費用の目安を教えてください。</summary>
+        <div class="faq-body">初期費用は車両台数・キーBOX数により変動します。月額費用は台数に応じたサブスクリプション型です。詳細なお見積りは資料請求フォームよりお問い合わせください。</div>
+      </details>
+      <details class="faq-item">
+        <summary>IT担当者がいない小規模な役場でも導入できますか？</summary>
+        <div class="faq-body">はい、人口5,000人未満の自治体への導入実績も多数あります。初期設定から操作研修まで弊社スタッフが全面対応しますので、ITの専門知識は不要です。</div>
+      </details>
+      <details class="faq-item">
+        <summary>個人情報・利用記録のデータ管理はどうなっていますか？</summary>
+        <div class="faq-body">国内データセンターでの保管、通信の暗号化（TLS1.3）、定期的な第三者セキュリティ監査を実施しています。ISMSの認証を取得済みです。</div>
+      </details>
+      <details class="faq-item">
+        <summary>公有財産台帳との連携・法的な記録保管は対応していますか？</summary>
+        <div class="faq-body">走行記録・使用記録を法定保管期間に準拠して管理します。公有財産台帳システムとのCSVエクスポート連携にも対応しています。</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contact">
+  <div class="container">
+    <div class="section-label" style="color:var(--accent);">資料請求・お問い合わせ</div>
+    <h2>まずは無料の資料請求から</h2>
+    <p>導入事例・料金表・機能詳細を含む資料を無料でお送りします。<br>翌営業日以内に担当者よりご連絡いたします。</p>
+    <form class="cta-form" onsubmit="handleSubmit(event)">
+      <input type="email" placeholder="自治体メールアドレス（例：xxxx@city.xx.lg.jp）" required />
+      <button type="submit" class="btn-primary">資料を請求する</button>
+    </form>
+    <p class="cta-note">※ 個人情報は資料送付・お問い合わせ対応のみに使用します</p>
+  </div>
+</section>
+
+<!-- フッター -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">GovShare<span>.</span></div>
+      <p style="font-size:0.82rem; max-width:260px;">自治体の公用車管理を、<br>デジタルの力でシンプルに。</p>
+    </div>
+    <div class="footer-links">
+      <a href="#">機能一覧</a>
+      <a href="#">導入事例</a>
+      <a href="#">料金プラン</a>
+      <a href="#">セキュリティ</a>
+      <a href="#">会社情報</a>
+      <a href="#">プライバシーポリシー</a>
+    </div>
+  </div>
+  <div class="footer-copy">© 2024 GovShare. All rights reserved.</div>
+</footer>
+
+<script>
+  function handleSubmit(e) {
+    e.preventDefault();
+    alert('お問い合わせありがとうございます。翌営業日以内にご連絡いたします。');
+  }
+
+  // スムーススクロール
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
