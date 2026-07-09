@@ -1,1 +1,82 @@
-# excer
+# LIFE COCKPIT
+
+TO DO・目標・健康・住居・資産・趣味など、生活全般を1つの画面で俯瞰できる自己管理アプリ。
+航空機のコックピットを模したダークトーンのUI（アンバー×シアン）を採用し、各領域を「パネル」として配置しています。
+
+企画・技術仕様書 Version 0.1 の **フェーズ1（PWA公開）** に相当する実装です。
+
+## 主な機能
+
+- **HUD**: 本日のライフスコア（円形ゲージ）、あなたの残り時間（目標年齢までのリアルタイムカウントダウン）
+- **MOVE（MaaS）パネル**: HUD直下・横長全幅でカーシェアの予約状況を常時表示
+- **10のパネル**: TO DO／プロジェクト／目標（今日・今月・今年・中長期の階層）／名言（日替わり）／身体・メンタル（睡眠・気分・持病・お薬）／住居・物品・車両（車検等の期日管理）／買い物・在庫／記念日・誕生日・命日／資産管理／趣味（連続日数・週間目標）
+- **詳細ドロワー**: 各パネルタップで右からスライドイン。すべてCRUD可能
+- **テーマストア**: CSSカスタムプロパティによる全面スキン切替。標準「コックピット」無料＋4種の買い切りテーマ（購入フローはデモ）
+- **AI / サブスクリプション行**: アラームAI・占い・メディカル・銀行連携・会話AIのトグル。無料プランではロックされ、アップグレード（Stripe Checkoutのモック）で解放
+- **PWA**: manifest + Service Worker によるオフライン対応、ホーム画面追加可
+
+## データ設計（仕様書6章）
+
+無料プランのデータはすべて端末内の IndexedDB（Dexie.js）に保存し、クラウドには送信しません。
+主キーは端末側で生成した UUID とし、有料プラン移行時にそのまま Supabase へ一括移行できる形にしています。
+`navigator.storage.persist()` によりiOS PWAのデータ消去リスクを低減しています。
+
+## 技術スタック
+
+| レイヤー | 採用技術 |
+| --- | --- |
+| フロントエンド | Next.js 15（React 19・App Router） |
+| ローカルストレージ | Dexie.js（IndexedDB） |
+| テーマ | CSSカスタムプロパティ |
+| PWA | Web App Manifest + Service Worker |
+
+## 開発
+
+```bash
+npm install
+npm run dev    # http://localhost:3000
+npm run build  # 本番ビルド
+npm start      # 本番サーバー
+```
+
+## レンタルサーバーへのデプロイ（静的書き出し）
+
+`next.config.mjs` の `output: "export"` により、ビルドすると `out/` に静的ファイル一式が生成されます。
+Node.jsが動かない共用レンタルサーバー（Xサーバー等）には、この `out/` の中身をドキュメントルート（`public_html/`）へアップロードするだけで動作します。
+
+```bash
+npm run build   # → out/ が生成される
+```
+
+注意点:
+- PWA（Service Worker・ホーム画面追加）は **HTTPS必須**。サーバー側で無料SSLを有効化すること
+- ドメイン直下（またはサブドメイン直下）に配置すること。サブディレクトリ配置の場合は `basePath` の設定と `manifest.json`／`sw.js` 内のパス修正が必要
+- 更新をアップロードしたら `public/sw.js` の `CACHE` バージョンを上げる（古いキャッシュが配信され続けるのを防ぐ）
+
+## Google Cloud へのデプロイ
+
+### 方法A: Firebase Hosting（推奨・無料枠あり）
+
+```bash
+npm run build                # out/ を生成
+npm install -g firebase-tools
+firebase login
+firebase init hosting        # 既存の firebase.json を使う（public: out）
+firebase deploy
+```
+
+`firebase.json` に Service Worker の no-cache ヘッダーとビルド資産の長期キャッシュを設定済み。
+
+### 方法B: Cloud Run（コンテナ・従量課金）
+
+リポジトリ同梱の `Dockerfile`（nginx で `out/` を配信、8080番で待受）を使う:
+
+```bash
+gcloud run deploy life-cockpit --source . --region asia-northeast1 --allow-unauthenticated --port 8080
+```
+
+## 今後（仕様書11章ロードマップ）
+
+- フェーズ1残: Supabase（Auth + Postgres + RLS）連携、Stripe Checkout本実装
+- フェーズ2: Capacitorによるネイティブ化、Wearable連携、AlarmKit本格アラームAI
+- フェーズ3: Moneytree LINK、カーシェア事業者API連携

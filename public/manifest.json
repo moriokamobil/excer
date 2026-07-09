@@ -1,0 +1,13 @@
+{
+  "name": "LIFE COCKPIT",
+  "short_name": "LIFE COCKPIT",
+  "description": "生活全般を1つの画面で俯瞰できる自己管理アプリ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0c0e",
+  "theme_color": "#0a0c0e",
+  "lang": "ja",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
