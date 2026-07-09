@@ -39,6 +39,20 @@ npm run build  # 本番ビルド
 npm start      # 本番サーバー
 ```
 
+## レンタルサーバーへのデプロイ（静的書き出し）
+
+`next.config.mjs` の `output: "export"` により、ビルドすると `out/` に静的ファイル一式が生成されます。
+Node.jsが動かない共用レンタルサーバー（Xサーバー等）には、この `out/` の中身をドキュメントルート（`public_html/`）へアップロードするだけで動作します。
+
+```bash
+npm run build   # → out/ が生成される
+```
+
+注意点:
+- PWA（Service Worker・ホーム画面追加）は **HTTPS必須**。サーバー側で無料SSLを有効化すること
+- ドメイン直下（またはサブドメイン直下）に配置すること。サブディレクトリ配置の場合は `basePath` の設定と `manifest.json`／`sw.js` 内のパス修正が必要
+- 更新をアップロードしたら `public/sw.js` の `CACHE` バージョンを上げる（古いキャッシュが配信され続けるのを防ぐ）
+
 ## 今後（仕様書11章ロードマップ）
 
 - フェーズ1残: Supabase（Auth + Postgres + RLS）連携、Stripe Checkout本実装
