@@ -53,6 +53,28 @@ npm run build   # → out/ が生成される
 - ドメイン直下（またはサブドメイン直下）に配置すること。サブディレクトリ配置の場合は `basePath` の設定と `manifest.json`／`sw.js` 内のパス修正が必要
 - 更新をアップロードしたら `public/sw.js` の `CACHE` バージョンを上げる（古いキャッシュが配信され続けるのを防ぐ）
 
+## Google Cloud へのデプロイ
+
+### 方法A: Firebase Hosting（推奨・無料枠あり）
+
+```bash
+npm run build                # out/ を生成
+npm install -g firebase-tools
+firebase login
+firebase init hosting        # 既存の firebase.json を使う（public: out）
+firebase deploy
+```
+
+`firebase.json` に Service Worker の no-cache ヘッダーとビルド資産の長期キャッシュを設定済み。
+
+### 方法B: Cloud Run（コンテナ・従量課金）
+
+リポジトリ同梱の `Dockerfile`（nginx で `out/` を配信、8080番で待受）を使う:
+
+```bash
+gcloud run deploy life-cockpit --source . --region asia-northeast1 --allow-unauthenticated --port 8080
+```
+
 ## 今後（仕様書11章ロードマップ）
 
 - フェーズ1残: Supabase（Auth + Postgres + RLS）連携、Stripe Checkout本実装
