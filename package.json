@@ -1,0 +1,25 @@
+{
+  "name": "lost-museum",
+  "version": "0.1.0",
+  "private": true,
+  "description": "失われた美術館の修復 (Lost Museum) — citras連携 位置情報コレクションゲーム",
+  "workspaces": [
+    "packages/*",
+    "apps/api",
+    "mock-citras"
+  ],
+  "scripts": {
+    "build:shared": "npm run build -w @lost-museum/shared",
+    "dev:api": "npm run dev -w @lost-museum/api",
+    "dev:mock": "npm run dev -w @lost-museum/mock-citras",
+    "test": "npm run test -w @lost-museum/api",
+    "test:coverage": "npm run test:coverage -w @lost-museum/api",
+    "e2e": "bash scripts/e2e-run.sh",
+    "migrate": "npm run migrate -w @lost-museum/api",
+    "seed": "npm run seed -w @lost-museum/api",
+    "import-assets": "npm run import-assets -w @lost-museum/api"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
