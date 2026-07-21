@@ -9,6 +9,7 @@ import { eventRoutes } from './routes/events';
 import { mapRoutes } from './routes/map';
 import { workRoutes } from './routes/work';
 import { shopRoutes } from './routes/shop';
+import { adminRoutes } from './routes/admin';
 
 export async function buildServer() {
   const app = Fastify({ logger: true });
@@ -29,6 +30,7 @@ export async function buildServer() {
       await api.register(mapRoutes);
       await api.register(workRoutes);
       await api.register(shopRoutes);
+      await api.register(adminRoutes);
     },
     { prefix: '/api/v1' },
   );
