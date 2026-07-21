@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: museum
+      POSTGRES_PASSWORD: museum
+      POSTGRES_DB: lost_museum
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U museum -d lost_museum']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mock-citras:
+    build:
+      context: .
+      dockerfile: mock-citras/Dockerfile
+    environment:
+      PORT: '4100'
+      GAME_WEBHOOK_URL: http://api:4000/api/v1/webhooks/work-completed
+      WEBHOOK_SECRET: mock-citras-secret
+    ports:
+      - '4100:4100'
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PORT: '4000'
+      DATABASE_URL: postgres://museum:museum@postgres:5432/lost_museum
+      REDIS_URL: redis://redis:6379
+      MOCK_CITRAS_URL: http://mock-citras:4100
+      WEBHOOK_SECRET: mock-citras-secret
+      JWT_SECRET: dev-secret-change-me
+    ports:
+      - '4000:4000'
+    # 起動時にマイグレーション + シードを実行してからサーバー起動
+    command: sh -c "npx tsx src/infra/migrate.ts && npx tsx db/seed/index.ts && npx tsx src/server.ts"
+    working_dir: /app/apps/api
+
+volumes:
+  pgdata:
